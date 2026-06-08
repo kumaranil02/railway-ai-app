@@ -25,6 +25,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+print("OPENAI_API_KEY =", os.getenv("OPENAI_API_KEY"))
+print("HF_TOKEN_ =", os.getenv("HF_TOKEN_"))
+
 HF_TOKEN = os.getenv("HF_TOKEN_")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
