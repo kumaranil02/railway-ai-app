@@ -148,27 +148,31 @@ def run_agent(user_message, history):
 
 
 # =====================================================
-# CUSTOM CSS - NATURE THEME
+# CUSTOM CSS - NATURE LANDSCAPE THEME
 # =====================================================
 
 CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-  --bg-0: #04110b;
-  --bg-1: #071a12;
-  --bg-2: #0b2418;
-  --card: rgba(10, 24, 18, 0.74);
-  --card-soft: rgba(16, 34, 25, 0.86);
-  --line: rgba(165, 243, 188, 0.12);
-  --line-strong: rgba(165, 243, 188, 0.20);
-  --text: #f5fff8;
-  --text-soft: rgba(233, 255, 239, 0.78);
-  --text-muted: rgba(226, 255, 235, 0.58);
-  --accent: #5ee38a;
-  --accent-2: #35c98c;
-  --accent-3: #76b7ff;
-  --shadow: 0 28px 80px rgba(0, 0, 0, 0.52);
+  --sky-1: #dff6ff;
+  --sky-2: #bfe7ff;
+  --sky-3: #8fd2ff;
+  --forest-1: #104233;
+  --forest-2: #17664d;
+  --forest-3: #2d8a5e;
+  --leaf-1: #61c98f;
+  --leaf-2: #9ae7b3;
+  --card: rgba(245, 249, 244, 0.76);
+  --card-strong: rgba(237, 245, 238, 0.90);
+  --line: rgba(23, 102, 77, 0.18);
+  --line-strong: rgba(23, 102, 77, 0.28);
+  --text: #163024;
+  --text-strong: #10271e;
+  --text-muted: #496255;
+  --accent: #2d8a5e;
+  --accent-2: #1f6f52;
+  --shadow: 0 24px 70px rgba(14, 40, 29, 0.22);
 }
 
 * { box-sizing: border-box; }
@@ -178,10 +182,24 @@ body {
   font-family: 'Inter', 'Segoe UI', sans-serif !important;
   color: var(--text);
   background:
-    radial-gradient(circle at 15% 15%, rgba(94, 227, 138, 0.16), transparent 24%),
-    radial-gradient(circle at 85% 10%, rgba(54, 193, 140, 0.12), transparent 20%),
-    radial-gradient(circle at 75% 92%, rgba(118, 183, 255, 0.10), transparent 22%),
-    linear-gradient(160deg, #030d08 0%, #07150f 42%, #06110c 100%) !important;
+    linear-gradient(180deg, #dff6ff 0%, #c8eff8 18%, #f6fbf4 18%, #ebf8ee 100%) !important;
+}
+
+/* scenic landscape layers */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 15% 14%, rgba(255, 255, 255, 0.92) 0 6%, transparent 7%),
+    radial-gradient(circle at 20% 12%, rgba(255, 248, 220, 0.40) 0 10%, transparent 11%),
+    linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.00) 18%),
+    linear-gradient(160deg, transparent 0 58%, rgba(34, 120, 83, 0.12) 58% 66%, rgba(22, 76, 55, 0.18) 66% 75%, transparent 75%),
+    linear-gradient(175deg, transparent 0 62%, rgba(79, 173, 120, 0.16) 62% 73%, rgba(34, 120, 83, 0.20) 73% 82%, transparent 82%),
+    linear-gradient(180deg, transparent 0 72%, rgba(26, 96, 68, 0.10) 72% 100%);
+  opacity: 0.95;
+  z-index: 0;
 }
 
 .gradio-container {
@@ -189,6 +207,8 @@ body {
   min-height: 100vh !important;
   padding: 0 !important;
   background: transparent !important;
+  position: relative;
+  z-index: 1;
 }
 
 .page-shell {
@@ -205,7 +225,7 @@ body {
   gap: 18px;
   padding: 8px 4px 18px;
   margin-bottom: 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(20, 60, 45, 0.12);
 }
 
 .header-left {
@@ -221,9 +241,9 @@ body {
   display: grid;
   place-items: center;
   font-size: 1.35rem;
-  background: linear-gradient(135deg, #1fa96e 0%, #5ee38a 45%, #8ce8bd 100%);
-  box-shadow: 0 10px 24px rgba(94, 227, 138, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.28);
-  color: #052012;
+  background: linear-gradient(135deg, #2d8a5e 0%, #61c98f 45%, #b4f0c7 100%);
+  box-shadow: 0 10px 24px rgba(45, 138, 94, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.36);
+  color: #effbf3;
   flex-shrink: 0;
 }
 
@@ -233,7 +253,7 @@ body {
   line-height: 1;
   font-weight: 900;
   letter-spacing: -0.04em;
-  color: var(--text);
+  color: var(--text-strong);
 }
 
 .app-subtitle {
@@ -254,12 +274,12 @@ body {
   gap: 6px;
   padding: 8px 13px;
   border-radius: 999px;
-  border: 1px solid rgba(94, 227, 138, 0.20);
-  background: rgba(6, 20, 14, 0.55);
-  color: rgba(245, 255, 248, 0.90);
+  border: 1px solid rgba(23, 102, 77, 0.16);
+  background: rgba(255, 255, 255, 0.70);
+  color: var(--text-strong);
   font-size: 0.84rem;
-  font-weight: 600;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  font-weight: 700;
+  box-shadow: 0 8px 24px rgba(17, 60, 43, 0.06);
   white-space: nowrap;
 }
 
@@ -274,11 +294,11 @@ body {
 /* CHAT CARD */
 .chat-card {
   background: var(--card) !important;
-  border: 1px solid var(--line) !important;
+  border: 1px solid rgba(23, 102, 77, 0.12) !important;
   border-radius: 26px !important;
   overflow: hidden !important;
-  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.05) !important;
-  backdrop-filter: blur(20px) saturate(1.05) !important;
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.45) !important;
+  backdrop-filter: blur(18px) saturate(1.03) !important;
   min-height: 760px;
 }
 
@@ -294,24 +314,24 @@ body {
 }
 
 .chatbot-box .message.user {
-  background: linear-gradient(135deg, #1e9d69 0%, #32c688 45%, #58d9a0 100%) !important;
-  color: #052012 !important;
+  background: linear-gradient(135deg, #2d8a5e 0%, #61c98f 100%) !important;
+  color: #f3fff5 !important;
   border-radius: 18px 18px 6px 18px !important;
   font-weight: 600 !important;
-  box-shadow: 0 10px 18px rgba(94, 227, 138, 0.14) !important;
+  box-shadow: 0 10px 18px rgba(45, 138, 94, 0.18) !important;
 }
 
 .chatbot-box .message.bot {
-  background: rgba(255, 255, 255, 0.055) !important;
-  color: var(--text) !important;
-  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  background: rgba(255, 255, 255, 0.82) !important;
+  color: var(--text-strong) !important;
+  border: 1px solid rgba(23, 102, 77, 0.10) !important;
   border-radius: 18px 18px 18px 6px !important;
 }
 
 .chat-divider {
   height: 1px;
   margin: 0 20px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  background: linear-gradient(90deg, transparent, rgba(23, 102, 77, 0.10), transparent);
 }
 
 .input-area {
@@ -325,9 +345,9 @@ body {
   padding: 12px !important;
   margin-top: 2px !important;
   border-radius: 22px !important;
-  background: rgba(8, 24, 16, 0.72) !important;
-  border: 1px solid rgba(94, 227, 138, 0.18) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04) !important;
+  background: rgba(255, 255, 255, 0.62) !important;
+  border: 1px solid rgba(23, 102, 77, 0.14) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.70) !important;
 }
 
 .composer-row > div {
@@ -336,26 +356,26 @@ body {
 
 .input-box textarea {
   min-height: 58px !important;
-  background: rgba(255, 255, 255, 0.10) !important;
-  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid rgba(23, 102, 77, 0.18) !important;
   border-radius: 16px !important;
-  color: var(--text) !important;
+  color: #153024 !important;
   font-size: 1rem !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
   padding: 16px 18px !important;
   resize: none !important;
   line-height: 1.5 !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.85) !important;
 }
 
 .input-box textarea:focus {
   outline: none !important;
-  border-color: rgba(94, 227, 138, 0.45) !important;
-  box-shadow: 0 0 0 3px rgba(94, 227, 138, 0.10) !important;
+  border-color: rgba(45, 138, 94, 0.45) !important;
+  box-shadow: 0 0 0 3px rgba(45, 138, 94, 0.10) !important;
 }
 
 .input-box textarea::placeholder {
-  color: rgba(240, 255, 245, 0.42) !important;
+  color: rgba(76, 101, 89, 0.62) !important;
 }
 
 .send-btn {
@@ -363,18 +383,18 @@ body {
   padding: 15px 18px !important;
   border: none !important;
   border-radius: 16px !important;
-  background: linear-gradient(135deg, #1fa96e 0%, #58d9a0 100%) !important;
-  color: #052012 !important;
+  background: linear-gradient(135deg, #2d8a5e 0%, #61c98f 100%) !important;
+  color: #f7fff8 !important;
   font-weight: 800 !important;
   font-size: 0.96rem !important;
-  box-shadow: 0 14px 24px rgba(94, 227, 138, 0.20) !important;
+  box-shadow: 0 14px 24px rgba(45, 138, 94, 0.20) !important;
   transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease !important;
 }
 
 .send-btn:hover {
   transform: translateY(-1px) !important;
   filter: brightness(1.03) !important;
-  box-shadow: 0 18px 30px rgba(94, 227, 138, 0.28) !important;
+  box-shadow: 0 18px 30px rgba(45, 138, 94, 0.26) !important;
 }
 
 .send-btn:active { transform: translateY(0) !important; }
@@ -388,8 +408,8 @@ body {
 
 .clear-btn {
   background: transparent !important;
-  border: 1px solid rgba(255,255,255,0.10) !important;
-  color: rgba(245, 255, 248, 0.72) !important;
+  border: 1px solid rgba(23, 102, 77, 0.12) !important;
+  color: rgba(16, 39, 30, 0.72) !important;
   border-radius: 12px !important;
   padding: 8px 14px !important;
   font-size: 0.84rem !important;
@@ -397,9 +417,9 @@ body {
 }
 
 .clear-btn:hover {
-  background: rgba(255,255,255,0.06) !important;
-  color: var(--text) !important;
-  border-color: rgba(94, 227, 138, 0.18) !important;
+  background: rgba(255,255,255,0.68) !important;
+  color: var(--text-strong) !important;
+  border-color: rgba(45, 138, 94, 0.20) !important;
 }
 
 /* SIDEBAR */
@@ -413,21 +433,21 @@ body {
 
 .sidebar-card,
 .info-card {
-  background: var(--card-soft) !important;
-  border: 1px solid var(--line) !important;
+  background: var(--card-strong) !important;
+  border: 1px solid rgba(23, 102, 77, 0.12) !important;
   border-radius: 22px !important;
-  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.04) !important;
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.45) !important;
   overflow: hidden !important;
 }
 
 .panel-title {
   padding: 16px 18px 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(23, 102, 77, 0.08);
   font-size: 0.84rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(245,255,248,0.82);
+  color: rgba(16, 39, 30, 0.86);
 }
 
 .panel-title span {
@@ -459,9 +479,9 @@ body {
   width: 100% !important;
   padding: 13px 14px !important;
   border-radius: 14px !important;
-  border: 1px solid rgba(94, 227, 138, 0.14) !important;
-  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)) !important;
-  color: var(--text) !important;
+  border: 1px solid rgba(45, 138, 94, 0.14) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255,255,255,0.58)) !important;
+  color: var(--text-strong) !important;
   font-size: 0.93rem !important;
   font-weight: 600 !important;
   line-height: 1.45 !important;
@@ -472,8 +492,8 @@ body {
 
 .examples-section .examples td:hover {
   transform: translateY(-1px) !important;
-  border-color: rgba(94, 227, 138, 0.32) !important;
-  background: linear-gradient(180deg, rgba(94,227,138,0.12), rgba(255,255,255,0.05)) !important;
+  border-color: rgba(45, 138, 94, 0.26) !important;
+  background: linear-gradient(180deg, rgba(97,201,143,0.18), rgba(255,255,255,0.70)) !important;
 }
 
 .capability-list { padding: 6px 0 4px; }
@@ -483,7 +503,7 @@ body {
   gap: 12px;
   align-items: flex-start;
   padding: 14px 18px;
-  border-top: 1px solid rgba(255,255,255,0.05);
+  border-top: 1px solid rgba(23, 102, 77, 0.06);
 }
 
 .capability-item:first-child { border-top: none; }
@@ -494,15 +514,15 @@ body {
   border-radius: 12px;
   display: grid;
   place-items: center;
-  background: rgba(94, 227, 138, 0.12);
-  border: 1px solid rgba(94, 227, 138, 0.12);
+  background: rgba(97, 201, 143, 0.12);
+  border: 1px solid rgba(97, 201, 143, 0.12);
   flex-shrink: 0;
 }
 
 .cap-text strong {
   display: block;
   font-size: 0.98rem;
-  color: var(--text);
+  color: var(--text-strong);
   font-weight: 700;
   margin-bottom: 3px;
 }
@@ -516,14 +536,14 @@ body {
 .footer {
   text-align: center;
   font-size: 0.80rem;
-  color: rgba(245,255,248,0.28);
+  color: rgba(16, 39, 30, 0.42);
   padding: 22px 0 8px;
 }
 
 /* SCROLLBAR */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(94, 227, 138, 0.28); border-radius: 999px; }
+::-webkit-scrollbar-thumb { background: rgba(45, 138, 94, 0.28); border-radius: 999px; }
 
 /* TABLET */
 @media (max-width: 1100px) {
