@@ -128,21 +128,42 @@ def run_agent(user_message, history):
         yield history, ""
         return
 
-    # Gradio Chatbot in this environment works best with [user, assistant] pairs.
-    history = history + [[user_message, "⏳ Thinking..."]]
+    if history is None:
+        history = []
+
+    # Gradio Chatbot in messages mode expects dicts with role/content.
+    history = history + [
+        {"role": "user", "content": user_message},
+        {"role": "assistant", "content": "⏳ Thinking..."},
+    ]
     yield history, ""
 
     try:
         response = agent.run(user_message)
+
         if isinstance(response, AgentImage):
             pil_img = response.to_raw()
             tmp = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
             pil_img.save(tmp.name)
-            history[-1] = [user_message, f"![generated image]({tmp.name})"]
+
+            history[-1] = {
+                "role": "assistant",
+                "content": {
+                    "path": tmp.name,
+                    "mime_type": "image/png",
+                },
+            }
         else:
-            history[-1] = [user_message, str(response)]
+            history[-1] = {
+                "role": "assistant",
+                "content": str(response),
+            }
+
     except Exception as e:
-        history[-1] = [user_message, f"⚠️ Error: {str(e)}"]
+        history[-1] = {
+            "role": "assistant",
+            "content": f"⚠️ Error: {str(e)}",
+        }
 
     yield history, ""
 
@@ -587,7 +608,7 @@ EXAMPLE_PROMPTS = [
     "Create an image of a fox sitting in a peaceful meadow",
 ]
 
-with gr.Blocks(title="🌿 Nature AI Agent", theme=gr.themes.Default(font=gr.themes.GoogleFont("Inter"))) as demo:
+with gr.Blocks(title="🌿 Nature AI Agent") as demo:
     gr.HTML(f"<style>{CSS}</style>")
 
     with gr.Column(elem_classes="page-shell"):
@@ -624,6 +645,7 @@ with gr.Blocks(title="🌿 Nature AI Agent", theme=gr.themes.Default(font=gr.the
                         None,
                         "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
                     ),
+                    type="messages",
                 )
                 gr.HTML('<div class="chat-divider"></div>')
                 with gr.Group(elem_classes="input-area"):
@@ -693,4 +715,5 @@ with gr.Blocks(title="🌿 Nature AI Agent", theme=gr.themes.Default(font=gr.the
 demo.launch(
     server_name="0.0.0.0",
     server_port=int(os.environ.get("PORT", 7861)),
+    theme=gr.themes.Default(font=gr.themes.GoogleFont("Inter")),
 )
