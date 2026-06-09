@@ -128,7 +128,7 @@ def run_agent(user_message, history):
         yield history, ""
         return
 
-    # Gradio Chatbot without `type="messages"` expects a list of [user, assistant] pairs.
+    # Gradio Chatbot in this environment works best with [user, assistant] pairs.
     history = history + [[user_message, "⏳ Thinking..."]]
     yield history, ""
 
@@ -319,15 +319,30 @@ body {
   background: transparent !important;
 }
 
+.composer-row {
+  align-items: stretch !important;
+  gap: 12px !important;
+  padding: 12px !important;
+  margin-top: 2px !important;
+  border-radius: 22px !important;
+  background: rgba(8, 24, 16, 0.72) !important;
+  border: 1px solid rgba(94, 227, 138, 0.18) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04) !important;
+}
+
+.composer-row > div {
+  min-width: 0 !important;
+}
+
 .input-box textarea {
   min-height: 58px !important;
-  background: rgba(255, 255, 255, 0.07) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: rgba(255, 255, 255, 0.10) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
   border-radius: 16px !important;
   color: var(--text) !important;
   font-size: 1rem !important;
   font-weight: 500 !important;
-  padding: 16px 16px !important;
+  padding: 16px 18px !important;
   resize: none !important;
   line-height: 1.5 !important;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.04) !important;
@@ -552,7 +567,7 @@ EXAMPLE_PROMPTS = [
     "Create an image of a fox sitting in a peaceful meadow",
 ]
 
-with gr.Blocks(title="🌿 Nature AI Agent") as demo:
+with gr.Blocks(title="🌿 Nature AI Agent", theme=gr.themes.Default(font=gr.themes.GoogleFont("Inter"))) as demo:
     gr.HTML(f"<style>{CSS}</style>")
 
     with gr.Column(elem_classes="page-shell"):
@@ -592,7 +607,7 @@ with gr.Blocks(title="🌿 Nature AI Agent") as demo:
                 )
                 gr.HTML('<div class="chat-divider"></div>')
                 with gr.Group(elem_classes="input-area"):
-                    with gr.Row():
+                    with gr.Row(elem_classes="composer-row"):
                         user_input = gr.Textbox(
                             placeholder="Ask anything — search the web, generate nature scenes, check timezones...",
                             show_label=False,
@@ -601,9 +616,9 @@ with gr.Blocks(title="🌿 Nature AI Agent") as demo:
                             scale=7,
                             elem_classes="input-box",
                         )
-                        send_btn = gr.Button("Send ➤", scale=1, elem_classes="send-btn")
+                        send_btn = gr.Button("Send ➜", scale=0, elem_classes="send-btn")
                 with gr.Row(elem_classes="bottom-bar"):
-                    clear_btn = gr.Button("🗑 Clear chat", elem_classes="clear-btn")
+                    clear_btn = gr.Button("Clear chat", elem_classes="clear-btn")
 
             # RIGHT: SIDEBAR
             with gr.Column(elem_classes="sidebar"):
