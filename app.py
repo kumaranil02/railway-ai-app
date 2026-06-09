@@ -128,8 +128,8 @@ def run_agent(user_message, history):
         yield history, ""
         return
 
-    history = history + [{"role": "user", "content": user_message}]
-    history = history + [{"role": "assistant", "content": "⏳ Thinking..."}]
+    # Gradio Chatbot without `type="messages"` expects a list of [user, assistant] pairs.
+    history = history + [[user_message, "⏳ Thinking..."]]
     yield history, ""
 
     try:
@@ -138,14 +138,11 @@ def run_agent(user_message, history):
             pil_img = response.to_raw()
             tmp = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
             pil_img.save(tmp.name)
-            history[-1] = {
-                "role": "assistant",
-                "content": {"path": tmp.name, "mime_type": "image/png"},
-            }
+            history[-1] = [user_message, f"![generated image]({tmp.name})"]
         else:
-            history[-1] = {"role": "assistant", "content": str(response)}
+            history[-1] = [user_message, str(response)]
     except Exception as e:
-        history[-1] = {"role": "assistant", "content": f"⚠️ Error: {str(e)}"}
+        history[-1] = [user_message, f"⚠️ Error: {str(e)}"]
 
     yield history, ""
 
@@ -592,7 +589,6 @@ with gr.Blocks(title="🌿 Nature AI Agent") as demo:
                         None,
                         "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
                     ),
-                    type="messages",
                 )
                 gr.HTML('<div class="chat-divider"></div>')
                 with gr.Group(elem_classes="input-area"):
