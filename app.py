@@ -147,32 +147,23 @@ def run_agent(user_message, history):
 
 CSS = """
 body, .gradio-container {
-    background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #0f3443, #1a1a2e);
-    background-size: 400% 400%;
-    animation: gradientShift 12s ease infinite;
+    background: #f0f4ff !important;
     min-height: 100vh;
     font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 
-@keyframes gradientShift {
-    0%   { background-position: 0% 50%; }
-    50%  { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
 .main-panel {
-    background: rgba(255, 255, 255, 0.05) !important;
-    backdrop-filter: blur(20px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 24px !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 20px !important;
+    box-shadow: 0 4px 24px rgba(99,102,241,0.08) !important;
     padding: 24px !important;
 }
 
 .app-title {
-    font-size: 2.8rem;
+    font-size: 2.4rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #a78bfa, #60a5fa, #34d399);
+    background: linear-gradient(135deg, #6366f1, #3b82f6, #06b6d4);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -180,66 +171,68 @@ body, .gradio-container {
     margin: 0;
 }
 
-.app-subtitle { color: rgba(255,255,255,0.5); font-size: 0.95rem; margin-top: 6px; }
+.app-subtitle { color: #64748b; font-size: 0.95rem; margin-top: 6px; }
 
 .tool-badges { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
 
 .badge { padding: 5px 14px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; }
 
-.badge-purple { background: rgba(167,139,250,0.15); color: #a78bfa; border: 1px solid rgba(167,139,250,0.3); }
-.badge-blue   { background: rgba(96,165,250,0.15);  color: #60a5fa; border: 1px solid rgba(96,165,250,0.3); }
-.badge-green  { background: rgba(52,211,153,0.15);  color: #34d399; border: 1px solid rgba(52,211,153,0.3); }
-.badge-orange { background: rgba(251,146,60,0.15);  color: #fb923c; border: 1px solid rgba(251,146,60,0.3); }
-.badge-pink   { background: rgba(244,114,182,0.15); color: #f472b6; border: 1px solid rgba(244,114,182,0.3); }
+.badge-purple { background: #ede9fe; color: #7c3aed; border: 1px solid #ddd6fe; }
+.badge-blue   { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.badge-green  { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.badge-orange { background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa; }
+.badge-pink   { background: #fce7f3; color: #be185d; border: 1px solid #fbcfe8; }
 
 .chatbot-box {
-    background: rgba(0,0,0,0.25) !important;
-    border: 1px solid rgba(255,255,255,0.08) !important;
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
     border-radius: 16px !important;
 }
 
 .input-box textarea {
-    background: rgba(255,255,255,0.06) !important;
-    border: 1px solid rgba(255,255,255,0.12) !important;
-    border-radius: 14px !important;
-    color: white !important;
+    background: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 12px !important;
+    color: #1e293b !important;
     font-size: 0.95rem !important;
     padding: 12px 16px !important;
     resize: none !important;
 }
 
 .input-box textarea:focus {
-    border-color: rgba(167,139,250,0.5) !important;
-    box-shadow: 0 0 0 3px rgba(167,139,250,0.1) !important;
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.12) !important;
     outline: none !important;
 }
 
-.input-box textarea::placeholder { color: rgba(255,255,255,0.3) !important; }
+.input-box textarea::placeholder { color: #94a3b8 !important; }
 
 .send-btn {
-    background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
+    background: linear-gradient(135deg, #6366f1, #3b82f6) !important;
     border: none !important;
-    border-radius: 14px !important;
+    border-radius: 12px !important;
     color: white !important;
     font-weight: 700 !important;
     padding: 12px 28px !important;
-    box-shadow: 0 4px 15px rgba(124,58,237,0.4) !important;
+    box-shadow: 0 4px 12px rgba(99,102,241,0.3) !important;
     min-width: 100px !important;
 }
 
-.send-btn:hover { transform: translateY(-2px) !important; box-shadow: 0 6px 20px rgba(124,58,237,0.6) !important; }
+.send-btn:hover { transform: translateY(-1px) !important; box-shadow: 0 6px 16px rgba(99,102,241,0.45) !important; }
 
 .clear-btn {
-    background: rgba(255,255,255,0.06) !important;
-    border: 1px solid rgba(255,255,255,0.12) !important;
-    border-radius: 14px !important;
-    color: rgba(255,255,255,0.6) !important;
+    background: #f1f5f9 !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    color: #64748b !important;
 }
 
-.footer { text-align: center; color: rgba(255,255,255,0.25); font-size: 0.75rem; margin-top: 16px; }
+.clear-btn:hover { background: #e2e8f0 !important; }
+
+.footer { text-align: center; color: #94a3b8; font-size: 0.75rem; margin-top: 16px; }
 
 ::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-thumb { background: rgba(167,139,250,0.3); border-radius: 99px; }
+::-webkit-scrollbar-thumb { background: #c7d2fe; border-radius: 99px; }
 """
 
 # =====================================================
@@ -255,14 +248,14 @@ EXAMPLE_PROMPTS = [
     "Create an image of a robot reading books in a cozy library",
 ]
 
-with gr.Blocks(title="✨ AI Agent") as demo:
+with gr.Blocks(title="✨ AI Agent", theme=gr.themes.Default()) as demo:
 
     gr.HTML(f"<style>{CSS}</style>")
 
     gr.HTML("""
     <div style="text-align:center;padding:20px 0 10px 0">
         <h1 class="app-title">✨ AI Agent</h1>
-        <p class="app-subtitle">Powered by GPT-4o · Web Search · Image Generation · HuggingFace</p>
+        <p class="app-subtitle" style="color:#64748b">Powered by GPT-4o · Web Search · Image Generation · HuggingFace</p>
         <div class="tool-badges">
             <span class="badge badge-purple">🔍 Web Search</span>
             <span class="badge badge-blue">🎨 Image Generation</span>
@@ -297,7 +290,7 @@ with gr.Blocks(title="✨ AI Agent") as demo:
         with gr.Row():
             clear_btn = gr.Button("🗑 Clear conversation", elem_classes="clear-btn")
 
-        gr.HTML('<p style="color:rgba(255,255,255,0.4);font-size:0.78rem;text-transform:uppercase;letter-spacing:1px;margin:16px 0 8px 2px">✦ Try an example</p>')
+        gr.HTML('<p style="color:#94a3b8;font-size:0.78rem;text-transform:uppercase;letter-spacing:1px;margin:16px 0 8px 2px">✦ Try an example</p>')
         gr.Examples(examples=EXAMPLE_PROMPTS, inputs=user_input, label="")
 
     gr.HTML('<div class="footer">Built with 🤗 smolagents · Gradio · GPT-4o · FLUX</div>')
