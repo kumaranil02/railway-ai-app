@@ -4,7 +4,7 @@ from smolagents import (
     LiteLLMModel,
     DuckDuckGoSearchTool,
     VisitWebpageTool,
-    tool
+    tool,
 )
 
 from smolagents.agent_types import AgentImage
@@ -25,14 +25,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-print("OPENAI_API_KEY =", os.getenv("OPENAI_API_KEY"))
-print("HF_TOKEN_ =", os.getenv("HF_TOKEN_"))
+HF_TOKEN = os.getenv("HF_TOKEN_", "").strip()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
 
-HF_TOKEN = os.getenv("HF_TOKEN_")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+print("OPENAI_API_KEY present:", bool(OPENAI_API_KEY))
+print("HF_TOKEN_ present:", bool(HF_TOKEN))
 
 if not OPENAI_API_KEY:
-    raise ValueError("OPENAI_API_KEY not found in .env file")
+    raise ValueError("OPENAI_API_KEY is missing from the environment")
 
 # =====================================================
 # TIME TOOL
@@ -53,6 +53,7 @@ def get_current_time_in_timezone(timezone: str) -> str:
     except Exception as e:
         return str(e)
 
+
 # =====================================================
 # IMAGE TOOL
 # =====================================================
@@ -68,9 +69,10 @@ def generate_image(prompt: str) -> AgentImage:
     client = InferenceClient(token=HF_TOKEN)
     image = client.text_to_image(
         prompt=prompt,
-        model="black-forest-labs/FLUX.1-schnell"
+        model="black-forest-labs/FLUX.1-schnell",
     )
     return AgentImage(image)
+
 
 # =====================================================
 # FINAL ANSWER TOOL
@@ -122,189 +124,421 @@ agent = CodeAgent(
 # =====================================================
 
 def run_agent(user_message, history):
-    if not user_message.strip():
+    if not user_message or not user_message.strip():
         yield history, ""
         return
+
     history = history + [{"role": "user", "content": user_message}]
-    history = history + [{"role": "assistant", "content": "⏳ Searching and thinking..."}]
+    history = history + [{"role": "assistant", "content": "⏳ Thinking..."}]
     yield history, ""
+
     try:
         response = agent.run(user_message)
         if isinstance(response, AgentImage):
             pil_img = response.to_raw()
             tmp = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
             pil_img.save(tmp.name)
-            history[-1] = {"role": "assistant", "content": {"path": tmp.name, "mime_type": "image/png"}}
+            history[-1] = {
+                "role": "assistant",
+                "content": {"path": tmp.name, "mime_type": "image/png"},
+            }
         else:
             history[-1] = {"role": "assistant", "content": str(response)}
     except Exception as e:
         history[-1] = {"role": "assistant", "content": f"⚠️ Error: {str(e)}"}
+
     yield history, ""
 
+
 # =====================================================
-# CUSTOM CSS
+# CUSTOM CSS - NATURE THEME
 # =====================================================
 
 CSS = """
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
-html, body { min-height: 100vh; background: #080810 !important; font-family: 'Inter','Segoe UI',sans-serif !important; }
-.gradio-container { background: #080810 !important; min-height: 100vh !important; padding: 0 !important; max-width: 100% !important; }
+:root {
+  --bg-0: #04110b;
+  --bg-1: #071a12;
+  --bg-2: #0b2418;
+  --card: rgba(10, 24, 18, 0.74);
+  --card-soft: rgba(16, 34, 25, 0.86);
+  --line: rgba(165, 243, 188, 0.12);
+  --line-strong: rgba(165, 243, 188, 0.20);
+  --text: #f5fff8;
+  --text-soft: rgba(233, 255, 239, 0.78);
+  --text-muted: rgba(226, 255, 235, 0.58);
+  --accent: #5ee38a;
+  --accent-2: #35c98c;
+  --accent-3: #76b7ff;
+  --shadow: 0 28px 80px rgba(0, 0, 0, 0.52);
+}
 
-/* PAGE SHELL */
-.page-shell { width: min(1360px, 100%); margin: 0 auto; padding: 0 36px 48px; }
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  margin: 0;
+  font-family: 'Inter', 'Segoe UI', sans-serif !important;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 15% 15%, rgba(94, 227, 138, 0.16), transparent 24%),
+    radial-gradient(circle at 85% 10%, rgba(54, 193, 140, 0.12), transparent 20%),
+    radial-gradient(circle at 75% 92%, rgba(118, 183, 255, 0.10), transparent 22%),
+    linear-gradient(160deg, #030d08 0%, #07150f 42%, #06110c 100%) !important;
+}
+
+.gradio-container {
+  max-width: 100% !important;
+  min-height: 100vh !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.page-shell {
+  width: min(1500px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 22px 0 28px;
+}
 
 /* HEADER */
 .header-wrap {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 26px 0 22px; border-bottom: 1px solid rgba(255,255,255,0.1);
-    margin-bottom: 28px; gap: 20px; flex-wrap: wrap;
-}
-.header-left { display: flex; align-items: center; gap: 14px; }
-.app-logo {
-    width: 48px; height: 48px; background: linear-gradient(135deg,#6366f1,#a855f7);
-    border-radius: 13px; display: flex; align-items: center; justify-content: center;
-    font-size: 1.5rem; box-shadow: 0 8px 24px rgba(99,102,241,0.5); flex-shrink: 0;
-}
-.app-title {
-    font-size: 1.5rem; font-weight: 800;
-    background: linear-gradient(135deg,#ffffff,#c4b5fd,#a78bfa);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.4px;
-}
-.app-subtitle { color: #94a3b8; font-size: 0.875rem; margin-top: 3px; font-weight: 400; }
-.tool-badges { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
-.badge {
-    padding: 6px 14px; border-radius: 999px; font-size: 0.78rem; font-weight: 600;
-    background: rgba(99,102,241,0.15); color: #c4b5fd; border: 1px solid rgba(139,92,246,0.35); white-space: nowrap;
-    letter-spacing: 0.01em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 8px 4px 18px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-/* TWO-COLUMN GRID */
-.content-grid { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.app-logo {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  font-size: 1.35rem;
+  background: linear-gradient(135deg, #1fa96e 0%, #5ee38a 45%, #8ce8bd 100%);
+  box-shadow: 0 10px 24px rgba(94, 227, 138, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  color: #052012;
+  flex-shrink: 0;
+}
+
+.header-text { display: flex; flex-direction: column; gap: 4px; }
+.app-title {
+  font-size: 2rem;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: var(--text);
+}
+
+.app-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.tool-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(94, 227, 138, 0.20);
+  background: rgba(6, 20, 14, 0.55);
+  color: rgba(245, 255, 248, 0.90);
+  font-size: 0.84rem;
+  font-weight: 600;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  white-space: nowrap;
+}
+
+/* GRID */
+.content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(340px, 0.85fr);
+  gap: 20px;
+  align-items: start;
+}
 
 /* CHAT CARD */
 .chat-card {
-    background: #12121f !important; border: 1px solid rgba(255,255,255,0.1) !important;
-    border-radius: 20px !important; box-shadow: 0 24px 64px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06) !important;
-    overflow: hidden !important;
+  background: var(--card) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 26px !important;
+  overflow: hidden !important;
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.05) !important;
+  backdrop-filter: blur(20px) saturate(1.05) !important;
+  min-height: 760px;
 }
-.chatbot-box { background: transparent !important; border: none !important; border-radius: 0 !important; }
-.chatbot-box .message { font-size: 0.975rem !important; line-height: 1.7 !important; padding: 13px 17px !important; }
+
+.chatbot-box {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+.chatbot-box .message {
+  font-size: 1rem !important;
+  line-height: 1.68 !important;
+}
+
 .chatbot-box .message.user {
-    background: linear-gradient(135deg,#4f46e5,#7c3aed) !important; color: #fff !important;
-    border-radius: 18px 18px 5px 18px !important; box-shadow: 0 4px 16px rgba(79,70,229,0.4) !important;
+  background: linear-gradient(135deg, #1e9d69 0%, #32c688 45%, #58d9a0 100%) !important;
+  color: #052012 !important;
+  border-radius: 18px 18px 6px 18px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 10px 18px rgba(94, 227, 138, 0.14) !important;
 }
+
 .chatbot-box .message.bot {
-    background: #1e1e30 !important; color: #e2e8f0 !important;
-    border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 18px 18px 18px 5px !important;
+  background: rgba(255, 255, 255, 0.055) !important;
+  color: var(--text) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 18px 18px 18px 6px !important;
 }
-.chat-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 0 20px; }
-.input-area { padding: 16px 20px 12px !important; background: transparent !important; }
+
+.chat-divider {
+  height: 1px;
+  margin: 0 20px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+}
+
+.input-area {
+  padding: 16px 20px 12px !important;
+  background: transparent !important;
+}
+
 .input-box textarea {
-    background: #1a1a2e !important; border: 1.5px solid rgba(255,255,255,0.12) !important;
-    border-radius: 14px !important; color: #f1f5f9 !important; font-size: 0.975rem !important;
-    font-family: 'Inter',sans-serif !important; padding: 14px 18px !important; resize: none !important;
-    line-height: 1.6 !important; transition: border-color 0.2s, box-shadow 0.2s, background 0.2s !important;
+  min-height: 58px !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 16px !important;
+  color: var(--text) !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  padding: 16px 16px !important;
+  resize: none !important;
+  line-height: 1.5 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04) !important;
 }
+
 .input-box textarea:focus {
-    border-color: rgba(139,92,246,0.7) !important; background: #1e1e35 !important;
-    box-shadow: 0 0 0 3px rgba(99,102,241,0.18) !important; outline: none !important;
+  outline: none !important;
+  border-color: rgba(94, 227, 138, 0.45) !important;
+  box-shadow: 0 0 0 3px rgba(94, 227, 138, 0.10) !important;
 }
-.input-box textarea::placeholder { color: #64748b !important; }
+
+.input-box textarea::placeholder {
+  color: rgba(240, 255, 245, 0.42) !important;
+}
+
 .send-btn {
-    background: linear-gradient(135deg,#4f46e5,#7c3aed) !important; border: none !important;
-    border-radius: 13px !important; color: #fff !important; font-weight: 700 !important;
-    font-size: 0.925rem !important; padding: 14px 26px !important;
-    box-shadow: 0 4px 16px rgba(79,70,229,0.5) !important; transition: all 0.2s !important;
-    white-space: nowrap !important; min-width: 90px !important;
+  min-width: 118px !important;
+  padding: 15px 18px !important;
+  border: none !important;
+  border-radius: 16px !important;
+  background: linear-gradient(135deg, #1fa96e 0%, #58d9a0 100%) !important;
+  color: #052012 !important;
+  font-weight: 800 !important;
+  font-size: 0.96rem !important;
+  box-shadow: 0 14px 24px rgba(94, 227, 138, 0.20) !important;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease !important;
 }
-.send-btn:hover { background: linear-gradient(135deg,#4338ca,#6d28d9) !important; transform: translateY(-2px) !important; box-shadow: 0 8px 24px rgba(79,70,229,0.6) !important; }
+
+.send-btn:hover {
+  transform: translateY(-1px) !important;
+  filter: brightness(1.03) !important;
+  box-shadow: 0 18px 30px rgba(94, 227, 138, 0.28) !important;
+}
+
 .send-btn:active { transform: translateY(0) !important; }
-.bottom-bar { display: flex; justify-content: flex-end; padding: 6px 20px 16px !important; background: transparent !important; }
-.clear-btn {
-    background: transparent !important; border: 1px solid rgba(255,255,255,0.12) !important;
-    border-radius: 9px !important; color: #94a3b8 !important;
-    font-size: 0.825rem !important; padding: 6px 14px !important; transition: all 0.15s !important;
+
+.bottom-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 20px 16px !important;
+  background: transparent !important;
 }
-.clear-btn:hover { background: rgba(255,255,255,0.07) !important; color: #cbd5e1 !important; border-color: rgba(255,255,255,0.2) !important; }
+
+.clear-btn {
+  background: transparent !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  color: rgba(245, 255, 248, 0.72) !important;
+  border-radius: 12px !important;
+  padding: 8px 14px !important;
+  font-size: 0.84rem !important;
+  transition: all 0.15s ease !important;
+}
+
+.clear-btn:hover {
+  background: rgba(255,255,255,0.06) !important;
+  color: var(--text) !important;
+  border-color: rgba(94, 227, 138, 0.18) !important;
+}
 
 /* SIDEBAR */
-.sidebar { display: flex; flex-direction: column; gap: 18px; position: sticky; top: 24px; }
-.sidebar-card {
-    background: #12121f !important; border: 1px solid rgba(255,255,255,0.1) !important;
-    border-radius: 18px !important; overflow: hidden !important;
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 20px;
 }
-.sidebar-title {
-    font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
-    color: #94a3b8; padding: 16px 18px 12px; border-bottom: 1px solid rgba(255,255,255,0.08);
+
+.sidebar-card,
+.info-card {
+  background: var(--card-soft) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 22px !important;
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.04) !important;
+  overflow: hidden !important;
 }
-.examples-section { padding: 14px 16px 16px !important; background: transparent !important; }
+
+.panel-title {
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(245,255,248,0.82);
+}
+
+.panel-title span {
+  color: var(--accent);
+}
+
+.examples-section {
+  padding: 14px 16px 16px !important;
+  background: transparent !important;
+}
+
+.examples-section .examples {
+  margin-top: 2px !important;
+}
+
 .examples-section .examples table,
-.examples-section .examples table tbody,
-.examples-section .examples table tr {
-    display: flex !important; flex-direction: column !important; gap: 9px !important;
-    border: none !important; background: transparent !important; width: 100% !important;
-}
-.examples-section .examples table td {
-    display: block !important; width: 100% !important; padding: 11px 15px !important;
-    background: rgba(99,102,241,0.1) !important; border: 1px solid rgba(139,92,246,0.25) !important;
-    border-radius: 11px !important; font-size: 0.85rem !important; font-weight: 500 !important;
-    color: #c4b5fd !important; cursor: pointer !important; transition: all 0.15s !important;
-    white-space: normal !important; line-height: 1.45 !important;
-}
-.examples-section .examples table td:hover {
-    background: rgba(99,102,241,0.22) !important; border-color: rgba(139,92,246,0.55) !important;
-    color: #e9d5ff !important; transform: translateX(4px) !important;
+.examples-section .examples tbody,
+.examples-section .examples tr {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  background: transparent !important;
+  width: 100% !important;
+  border: none !important;
 }
 
-/* INFO CARD */
-.info-card { background: #12121f; border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; overflow: hidden; }
-.info-card-title {
-    font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
-    color: #94a3b8; padding: 16px 18px 12px; border-bottom: 1px solid rgba(255,255,255,0.08);
+.examples-section .examples td {
+  display: block !important;
+  width: 100% !important;
+  padding: 13px 14px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(94, 227, 138, 0.14) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)) !important;
+  color: var(--text) !important;
+  font-size: 0.93rem !important;
+  font-weight: 600 !important;
+  line-height: 1.45 !important;
+  white-space: normal !important;
+  cursor: pointer !important;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease !important;
 }
-.capability-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); }
-.capability-item:last-child { border-bottom: none; }
-.cap-icon { font-size: 1.05rem; width: 32px; height: 32px; background: rgba(99,102,241,0.15); border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.cap-text strong { display: block; font-size: 0.85rem; font-weight: 700; color: #e2e8f0; margin-bottom: 2px; }
-.cap-text span { font-size: 0.775rem; color: #94a3b8; line-height: 1.45; }
 
-/* FOOTER */
-.footer { text-align: center; color: #475569; font-size: 0.775rem; padding: 28px 0 8px; }
+.examples-section .examples td:hover {
+  transform: translateY(-1px) !important;
+  border-color: rgba(94, 227, 138, 0.32) !important;
+  background: linear-gradient(180deg, rgba(94,227,138,0.12), rgba(255,255,255,0.05)) !important;
+}
 
-::-webkit-scrollbar { width: 5px; }
+.capability-list { padding: 6px 0 4px; }
+
+.capability-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 18px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.capability-item:first-child { border-top: none; }
+
+.cap-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(94, 227, 138, 0.12);
+  border: 1px solid rgba(94, 227, 138, 0.12);
+  flex-shrink: 0;
+}
+
+.cap-text strong {
+  display: block;
+  font-size: 0.98rem;
+  color: var(--text);
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+
+.cap-text span {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.footer {
+  text-align: center;
+  font-size: 0.80rem;
+  color: rgba(245,255,248,0.28);
+  padding: 22px 0 8px;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.4); border-radius: 99px; }
+::-webkit-scrollbar-thumb { background: rgba(94, 227, 138, 0.28); border-radius: 999px; }
 
 /* TABLET */
-@media (max-width: 900px) {
-    .page-shell { padding: 0 22px 32px; }
-    .content-grid { grid-template-columns: 1fr; }
-    .sidebar { position: static; flex-direction: row; flex-wrap: wrap; gap: 16px; }
-    .sidebar-card, .info-card { flex: 1; min-width: 260px; }
-    .examples-section .examples table, .examples-section .examples table tbody, .examples-section .examples table tr { flex-direction: row !important; flex-wrap: wrap !important; }
-    .examples-section .examples table td { width: auto !important; white-space: nowrap !important; }
+@media (max-width: 1100px) {
+  .page-shell { width: min(100vw - 24px, 1500px); }
+  .content-grid { grid-template-columns: 1fr; }
+  .sidebar { position: static; }
 }
 
 /* MOBILE */
-@media (max-width: 600px) {
-    .page-shell { padding: 0 14px 24px; }
-    .header-wrap { padding: 18px 0 16px; flex-direction: column; align-items: flex-start; gap: 12px; }
-    .app-title { font-size: 1.25rem; }
-    .app-subtitle { font-size: 0.8rem; }
-    .tool-badges { justify-content: flex-start; }
-    .badge { font-size: 0.72rem; padding: 5px 11px; }
-    .chat-card { border-radius: 16px !important; }
-    .input-area { padding: 13px 13px 10px !important; }
-    .input-box textarea { font-size: 0.9rem !important; }
-    .send-btn { padding: 14px 16px !important; min-width: 58px !important; font-size: 0.875rem !important; }
-    .bottom-bar { padding: 4px 13px 14px !important; }
-    .sidebar { flex-direction: column; }
-    .sidebar-card, .info-card { min-width: unset !important; width: 100%; }
-    .examples-section .examples table td { font-size: 0.82rem !important; padding: 10px 13px !important; }
-    .cap-text strong { font-size: 0.82rem; }
-    .cap-text span { font-size: 0.75rem; }
+@media (max-width: 640px) {
+  .page-shell { width: calc(100vw - 16px); padding: 12px 0 20px; }
+  .header-wrap {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 2px 16px;
+  }
+  .app-title { font-size: 1.55rem; }
+  .app-subtitle { font-size: 0.88rem; }
+  .tool-badges { justify-content: flex-start; gap: 8px; }
+  .badge { font-size: 0.76rem; padding: 7px 11px; }
+  .chat-card { border-radius: 20px !important; min-height: 640px; }
+  .input-area { padding: 14px 14px 10px !important; }
+  .bottom-bar { padding: 0 14px 14px !important; }
+  .send-btn { min-width: 92px !important; padding: 14px 14px !important; }
+  .examples-section td { font-size: 0.88rem !important; }
+  .cap-text strong { font-size: 0.92rem; }
+  .cap-text span { font-size: 0.84rem; }
 }
 """
 
@@ -315,55 +549,56 @@ html, body { min-height: 100vh; background: #080810 !important; font-family: 'In
 EXAMPLE_PROMPTS = [
     "What are the latest news about AI today?",
     "What time is it in Tokyo right now?",
-    "Generate an image of a futuristic city at night with neon lights",
+    "Generate an image of a lush forest waterfall at sunrise",
     "Search the web and summarize: what is the current price of Bitcoin?",
     "What happened in the world this week?",
-    "Create an image of a robot reading books in a cozy library",
+    "Create an image of a fox sitting in a peaceful meadow",
 ]
 
-with gr.Blocks(title="✨ AI Agent") as demo:
-
+with gr.Blocks(title="🌿 Nature AI Agent") as demo:
     gr.HTML(f"<style>{CSS}</style>")
 
     with gr.Column(elem_classes="page-shell"):
-
-        # HEADER
-        gr.HTML("""
-        <div class="header-wrap">
-            <div class="header-left">
-                <div class="app-logo">✨</div>
-                <div class="header-text">
-                    <div class="app-title">AI Agent</div>
-                    <div class="app-subtitle">Powered by GPT-4o &nbsp;·&nbsp; Web Search &nbsp;·&nbsp; Image Generation</div>
+        gr.HTML(
+            """
+            <div class="header-wrap">
+                <div class="header-left">
+                    <div class="app-logo">🌿</div>
+                    <div class="header-text">
+                        <div class="app-title">Nature AI Agent</div>
+                        <div class="app-subtitle">A calm, modern assistant for search, images, web browsing, and reasoning</div>
+                    </div>
+                </div>
+                <div class="tool-badges">
+                    <span class="badge">🔍 Web Search</span>
+                    <span class="badge">🎨 Image Gen</span>
+                    <span class="badge">🕐 Timezone</span>
+                    <span class="badge">🌐 Browse</span>
+                    <span class="badge">⚡ Code</span>
                 </div>
             </div>
-            <div class="tool-badges">
-                <span class="badge">🔍 Web Search</span>
-                <span class="badge">🎨 Image Gen</span>
-                <span class="badge">🕐 Timezone</span>
-                <span class="badge">🌐 Browse</span>
-                <span class="badge">⚡ Code</span>
-            </div>
-        </div>
-        """)
+            """
+        )
 
-        # TWO-COLUMN GRID
         with gr.Row(elem_classes="content-grid"):
-
-            # LEFT: Chat panel
+            # LEFT: CHAT
             with gr.Column(elem_classes="chat-card"):
                 chatbot = gr.Chatbot(
                     value=[],
-                    height=520,
+                    height=640,
                     show_label=False,
                     elem_classes="chatbot-box",
-                    avatar_images=(None, "https://huggingface.co/front/assets/huggingface_logo-noborder.svg"),
+                    avatar_images=(
+                        None,
+                        "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
+                    ),
+                    type="messages",
                 )
                 gr.HTML('<div class="chat-divider"></div>')
                 with gr.Group(elem_classes="input-area"):
                     with gr.Row():
                         user_input = gr.Textbox(
-                            placeholder="Ask me anything — search the web, generate images, check timezones...",
+                            placeholder="Ask anything — search the web, generate nature scenes, check timezones...",
                             show_label=False,
                             lines=1,
                             max_lines=4,
@@ -374,40 +609,47 @@ with gr.Blocks(title="✨ AI Agent") as demo:
                 with gr.Row(elem_classes="bottom-bar"):
                     clear_btn = gr.Button("🗑 Clear chat", elem_classes="clear-btn")
 
-            # RIGHT: Sidebar
+            # RIGHT: SIDEBAR
             with gr.Column(elem_classes="sidebar"):
                 with gr.Group(elem_classes="sidebar-card"):
-                    gr.HTML('<div class="sidebar-title">✦ Try an example</div>')
+                    gr.HTML('<div class="panel-title"><span>✦</span> Try an example</div>')
                     with gr.Group(elem_classes="examples-section"):
-                        gr.Examples(examples=EXAMPLE_PROMPTS, inputs=user_input, label="")
+                        gr.Examples(
+                            examples=EXAMPLE_PROMPTS,
+                            inputs=user_input,
+                            label="",
+                        )
 
-                gr.HTML("""
-                <div class="info-card">
-                    <div class="info-card-title">⚡ Capabilities</div>
-                    <div class="capability-item">
-                        <div class="cap-icon">🔍</div>
-                        <div class="cap-text"><strong>Web Search</strong><span>Real-time DuckDuckGo search results</span></div>
-                    </div>
-                    <div class="capability-item">
-                        <div class="cap-icon">🎨</div>
-                        <div class="cap-text"><strong>Image Generation</strong><span>FLUX model via HuggingFace</span></div>
-                    </div>
-                    <div class="capability-item">
-                        <div class="cap-icon">🌐</div>
-                        <div class="cap-text"><strong>Web Browsing</strong><span>Visit and summarize any webpage</span></div>
-                    </div>
-                    <div class="capability-item">
-                        <div class="cap-icon">🕐</div>
-                        <div class="cap-text"><strong>Timezone Tool</strong><span>Current time in any timezone</span></div>
-                    </div>
-                    <div class="capability-item">
-                        <div class="cap-icon">⚡</div>
-                        <div class="cap-text"><strong>Code Execution</strong><span>Python reasoning &amp; computation</span></div>
-                    </div>
-                </div>
-                """)
+                with gr.Group(elem_classes="info-card"):
+                    gr.HTML('<div class="panel-title"><span>✦</span> Capabilities</div>')
+                    gr.HTML(
+                        """
+                        <div class="capability-list">
+                            <div class="capability-item">
+                                <div class="cap-icon">🔍</div>
+                                <div class="cap-text"><strong>Web Search</strong><span>Real-time DuckDuckGo results for current topics</span></div>
+                            </div>
+                            <div class="capability-item">
+                                <div class="cap-icon">🎨</div>
+                                <div class="cap-text"><strong>Image Generation</strong><span>Create scenic visuals using FLUX on HuggingFace</span></div>
+                            </div>
+                            <div class="capability-item">
+                                <div class="cap-icon">🌐</div>
+                                <div class="cap-text"><strong>Web Browsing</strong><span>Visit, read, and summarize webpages</span></div>
+                            </div>
+                            <div class="capability-item">
+                                <div class="cap-icon">🕐</div>
+                                <div class="cap-text"><strong>Timezone Tool</strong><span>Check the current time anywhere in the world</span></div>
+                            </div>
+                            <div class="capability-item">
+                                <div class="cap-icon">⚡</div>
+                                <div class="cap-text"><strong>Code Execution</strong><span>Reason with Python for fast computations</span></div>
+                            </div>
+                        </div>
+                        """
+                    )
 
-        gr.HTML('<div class="footer">Built with 🤗 smolagents &nbsp;·&nbsp; Gradio &nbsp;·&nbsp; GPT-4o &nbsp;·&nbsp; FLUX</div>')
+        gr.HTML('<div class="footer">Built with 🤗 smolagents · Gradio · GPT-4o · FLUX</div>')
 
     send_btn.click(fn=run_agent, inputs=[user_input, chatbot], outputs=[chatbot, user_input])
     user_input.submit(fn=run_agent, inputs=[user_input, chatbot], outputs=[chatbot, user_input])
@@ -417,4 +659,7 @@ with gr.Blocks(title="✨ AI Agent") as demo:
 # LAUNCH
 # =====================================================
 
-demo.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", 7861)), theme=gr.themes.Default(font=gr.themes.GoogleFont("Inter")))
+demo.launch(
+    server_name="0.0.0.0",
+    server_port=int(os.environ.get("PORT", 7861)),
+)
