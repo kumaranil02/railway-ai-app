@@ -53,7 +53,6 @@ def get_current_time_in_timezone(timezone: str) -> str:
     except Exception as e:
         return str(e)
 
-
 # =====================================================
 # IMAGE TOOL
 # =====================================================
@@ -72,7 +71,6 @@ def generate_image(prompt: str) -> AgentImage:
         model="black-forest-labs/FLUX.1-schnell",
     )
     return AgentImage(image)
-
 
 # =====================================================
 # FINAL ANSWER TOOL
@@ -124,17 +122,19 @@ agent = CodeAgent(
 # =====================================================
 
 def run_agent(user_message, history):
-    if not user_message or not user_message.strip():
-        yield history, ""
-        return
-
     if history is None:
         history = []
 
-    # Gradio Chatbot in messages mode expects dicts with role/content.
+    user_message = (user_message or "").strip()
+    if not user_message:
+        yield history, ""
+        return
+
+    # This Gradio build expects messages format:
+    # [{"role": "user", "content": ...}, {"role": "assistant", "content": ...}]
     history = history + [
         {"role": "user", "content": user_message},
-        {"role": "assistant", "content": "⏳ Thinking..."},
+        {"role": "assistant", "content": "⏳ Searching and thinking..."},
     ]
     yield history, ""
 
@@ -146,12 +146,10 @@ def run_agent(user_message, history):
             tmp = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
             pil_img.save(tmp.name)
 
+            # Keep the same response behavior as your original code
             history[-1] = {
                 "role": "assistant",
-                "content": {
-                    "path": tmp.name,
-                    "mime_type": "image/png",
-                },
+                "content": {"path": tmp.name, "mime_type": "image/png"},
             }
         else:
             history[-1] = {
@@ -167,7 +165,6 @@ def run_agent(user_message, history):
 
     yield history, ""
 
-
 # =====================================================
 # CUSTOM CSS - NATURE LANDSCAPE THEME
 # =====================================================
@@ -177,49 +174,48 @@ CSS = """
 
 :root {
   --sky-1: #dff6ff;
-  --sky-2: #bfe7ff;
-  --sky-3: #8fd2ff;
-  --forest-1: #104233;
-  --forest-2: #17664d;
-  --forest-3: #2d8a5e;
+  --sky-2: #c8eff8;
+  --sky-3: #f6fbf4;
+  --hill-1: #2d8a5e;
+  --hill-2: #17664d;
+  --hill-3: #104233;
   --leaf-1: #61c98f;
   --leaf-2: #9ae7b3;
-  --card: rgba(245, 249, 244, 0.76);
-  --card-strong: rgba(237, 245, 238, 0.90);
-  --line: rgba(23, 102, 77, 0.18);
-  --line-strong: rgba(23, 102, 77, 0.28);
+  --card: rgba(245, 249, 244, 0.78);
+  --card-strong: rgba(238, 246, 239, 0.92);
+  --line: rgba(23, 102, 77, 0.16);
   --text: #163024;
   --text-strong: #10271e;
   --text-muted: #496255;
   --accent: #2d8a5e;
-  --accent-2: #1f6f52;
-  --shadow: 0 24px 70px rgba(14, 40, 29, 0.22);
+  --shadow: 0 24px 70px rgba(14, 40, 29, 0.18);
 }
 
 * { box-sizing: border-box; }
 html, body { min-height: 100%; }
+
 body {
   margin: 0;
   font-family: 'Inter', 'Segoe UI', sans-serif !important;
   color: var(--text);
   background:
-    linear-gradient(180deg, #dff6ff 0%, #c8eff8 18%, #f6fbf4 18%, #ebf8ee 100%) !important;
+    linear-gradient(180deg, #dff6ff 0%, #c9eef6 18%, #f5fbf4 18%, #ecf8ee 100%) !important;
 }
 
-/* scenic landscape layers */
+/* Soft landscape overlay */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 15% 14%, rgba(255, 255, 255, 0.92) 0 6%, transparent 7%),
-    radial-gradient(circle at 20% 12%, rgba(255, 248, 220, 0.40) 0 10%, transparent 11%),
-    linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.00) 18%),
-    linear-gradient(160deg, transparent 0 58%, rgba(34, 120, 83, 0.12) 58% 66%, rgba(22, 76, 55, 0.18) 66% 75%, transparent 75%),
-    linear-gradient(175deg, transparent 0 62%, rgba(79, 173, 120, 0.16) 62% 73%, rgba(34, 120, 83, 0.20) 73% 82%, transparent 82%),
+    radial-gradient(circle at 16% 14%, rgba(255, 255, 255, 0.95) 0 6%, transparent 7%),
+    radial-gradient(circle at 21% 12%, rgba(255, 244, 210, 0.40) 0 10%, transparent 11%),
+    linear-gradient(180deg, rgba(255,255,255,0.38) 0%, rgba(255,255,255,0.00) 18%),
+    linear-gradient(166deg, transparent 0 60%, rgba(34, 120, 83, 0.10) 60% 69%, rgba(22, 76, 55, 0.18) 69% 78%, transparent 78%),
+    linear-gradient(176deg, transparent 0 63%, rgba(79, 173, 120, 0.16) 63% 75%, rgba(34, 120, 83, 0.20) 75% 85%, transparent 85%),
     linear-gradient(180deg, transparent 0 72%, rgba(26, 96, 68, 0.10) 72% 100%);
-  opacity: 0.95;
+  opacity: 0.96;
   z-index: 0;
 }
 
@@ -233,7 +229,7 @@ body::before {
 }
 
 .page-shell {
-  width: min(1500px, calc(100vw - 32px));
+  width: min(1440px, calc(100vw - 32px));
   margin: 0 auto;
   padding: 22px 0 28px;
 }
@@ -296,7 +292,7 @@ body::before {
   padding: 8px 13px;
   border-radius: 999px;
   border: 1px solid rgba(23, 102, 77, 0.16);
-  background: rgba(255, 255, 255, 0.70);
+  background: rgba(255, 255, 255, 0.74);
   color: var(--text-strong);
   font-size: 0.84rem;
   font-weight: 700;
@@ -304,10 +300,10 @@ body::before {
   white-space: nowrap;
 }
 
-/* GRID */
+/* MAIN LAYOUT */
 .content-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(340px, 0.85fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 20px;
   align-items: start;
 }
@@ -319,7 +315,7 @@ body::before {
   border-radius: 26px !important;
   overflow: hidden !important;
   box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.45) !important;
-  backdrop-filter: blur(18px) saturate(1.03) !important;
+  backdrop-filter: blur(18px) saturate(1.02) !important;
   min-height: 760px;
 }
 
@@ -366,7 +362,7 @@ body::before {
   padding: 12px !important;
   margin-top: 2px !important;
   border-radius: 22px !important;
-  background: rgba(255, 255, 255, 0.62) !important;
+  background: rgba(255, 255, 255, 0.68) !important;
   border: 1px solid rgba(23, 102, 77, 0.14) !important;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.70) !important;
 }
@@ -377,7 +373,7 @@ body::before {
 
 .input-box textarea {
   min-height: 58px !important;
-  background: rgba(255, 255, 255, 0.92) !important;
+  background: rgba(255, 255, 255, 0.94) !important;
   border: 1px solid rgba(23, 102, 77, 0.18) !important;
   border-radius: 16px !important;
   color: #153024 !important;
@@ -443,138 +439,62 @@ body::before {
   border-color: rgba(45, 138, 94, 0.20) !important;
 }
 
-/* SIDEBAR */
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  position: sticky;
-  top: 20px;
-}
-
-.sidebar-card,
-.info-card {
-  background: var(--card-strong) !important;
-  border: 1px solid rgba(23, 102, 77, 0.12) !important;
-  border-radius: 22px !important;
-  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.45) !important;
-  overflow: hidden !important;
-}
-
-.panel-title {
-  padding: 16px 18px 12px;
-  border-bottom: 1px solid rgba(23, 102, 77, 0.08);
-  font-size: 0.84rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+.examples-label {
+  color: var(--text-muted);
+  font-size: 0.78rem;
   text-transform: uppercase;
-  color: rgba(16, 39, 30, 0.86);
+  letter-spacing: 1px;
+  padding: 10px 16px 4px;
+  background: transparent;
 }
 
-.panel-title span {
-  color: var(--accent);
-}
-
-.examples-section {
-  padding: 14px 16px 16px !important;
+.examples-wrap {
   background: transparent !important;
+  padding: 0 12px 14px !important;
 }
 
-.examples-section .examples {
-  margin-top: 2px !important;
-}
-
-.examples-section .examples table,
-.examples-section .examples tbody,
-.examples-section .examples tr {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 10px !important;
-  background: transparent !important;
-  width: 100% !important;
+.examples-wrap .examples table {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   border: none !important;
 }
 
-.examples-section .examples td {
-  display: block !important;
-  width: 100% !important;
-  padding: 13px 14px !important;
-  border-radius: 14px !important;
-  border: 1px solid rgba(45, 138, 94, 0.14) !important;
-  background: linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255,255,255,0.58)) !important;
-  color: var(--text-strong) !important;
-  font-size: 0.93rem !important;
+.examples-wrap .examples table tbody { display: contents; }
+.examples-wrap .examples table tr { display: contents; }
+
+.examples-wrap .examples table td {
+  display: inline-block !important;
+  padding: 8px 14px !important;
+  background: rgba(255,255,255,0.76) !important;
+  border: 1px solid rgba(23, 102, 77, 0.14) !important;
+  border-radius: 999px !important;
+  font-size: 0.82rem !important;
   font-weight: 600 !important;
-  line-height: 1.45 !important;
-  white-space: normal !important;
+  color: var(--text-strong) !important;
   cursor: pointer !important;
-  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease !important;
+  transition: all 0.15s !important;
+  white-space: nowrap !important;
 }
 
-.examples-section .examples td:hover {
-  transform: translateY(-1px) !important;
-  border-color: rgba(45, 138, 94, 0.26) !important;
-  background: linear-gradient(180deg, rgba(97,201,143,0.18), rgba(255,255,255,0.70)) !important;
-}
-
-.capability-list { padding: 6px 0 4px; }
-
-.capability-item {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 14px 18px;
-  border-top: 1px solid rgba(23, 102, 77, 0.06);
-}
-
-.capability-item:first-child { border-top: none; }
-
-.cap-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  background: rgba(97, 201, 143, 0.12);
-  border: 1px solid rgba(97, 201, 143, 0.12);
-  flex-shrink: 0;
-}
-
-.cap-text strong {
-  display: block;
-  font-size: 0.98rem;
-  color: var(--text-strong);
-  font-weight: 700;
-  margin-bottom: 3px;
-}
-
-.cap-text span {
-  font-size: 0.88rem;
-  color: var(--text-muted);
-  line-height: 1.45;
+.examples-wrap .examples table td:hover {
+  background: rgba(97, 201, 143, 0.16) !important;
+  border-color: rgba(45, 138, 94, 0.28) !important;
+  color: #11402c !important;
 }
 
 .footer {
   text-align: center;
-  font-size: 0.80rem;
   color: rgba(16, 39, 30, 0.42);
-  padding: 22px 0 8px;
+  font-size: 0.74rem;
+  padding: 14px 0 20px;
 }
 
-/* SCROLLBAR */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(45, 138, 94, 0.28); border-radius: 999px; }
+::-webkit-scrollbar-thumb { background: rgba(45, 138, 94, 0.28); border-radius: 99px; }
 
-/* TABLET */
-@media (max-width: 1100px) {
-  .page-shell { width: min(100vw - 24px, 1500px); }
-  .content-grid { grid-template-columns: 1fr; }
-  .sidebar { position: static; }
-}
-
-/* MOBILE */
-@media (max-width: 640px) {
+@media (max-width: 600px) {
   .page-shell { width: calc(100vw - 16px); padding: 12px 0 20px; }
   .header-wrap {
     flex-direction: column;
@@ -589,9 +509,7 @@ body::before {
   .input-area { padding: 14px 14px 10px !important; }
   .bottom-bar { padding: 0 14px 14px !important; }
   .send-btn { min-width: 92px !important; padding: 14px 14px !important; }
-  .examples-section td { font-size: 0.88rem !important; }
-  .cap-text strong { font-size: 0.92rem; }
-  .cap-text span { font-size: 0.84rem; }
+  .chatbot-box .message.user, .chatbot-box .message.bot { max-width: 95% !important; }
 }
 """
 
@@ -608,7 +526,7 @@ EXAMPLE_PROMPTS = [
     "Create an image of a fox sitting in a peaceful meadow",
 ]
 
-with gr.Blocks(title="🌿 Nature AI Agent") as demo:
+with gr.Blocks(title="🌿 AI Agent") as demo:
     gr.HTML(f"<style>{CSS}</style>")
 
     with gr.Column(elem_classes="page-shell"):
@@ -618,8 +536,8 @@ with gr.Blocks(title="🌿 Nature AI Agent") as demo:
                 <div class="header-left">
                     <div class="app-logo">🌿</div>
                     <div class="header-text">
-                        <div class="app-title">Nature AI Agent</div>
-                        <div class="app-subtitle">A calm, modern assistant for search, images, web browsing, and reasoning</div>
+                        <div class="app-title">AI Agent</div>
+                        <div class="app-subtitle">A calm assistant for search, images, web browsing, and reasoning</div>
                     </div>
                 </div>
                 <div class="tool-badges">
@@ -633,74 +551,38 @@ with gr.Blocks(title="🌿 Nature AI Agent") as demo:
             """
         )
 
-        with gr.Row(elem_classes="content-grid"):
-            # LEFT: CHAT
-            with gr.Column(elem_classes="chat-card"):
-                chatbot = gr.Chatbot(
-                    value=[],
-                    height=640,
-                    show_label=False,
-                    elem_classes="chatbot-box",
-                    avatar_images=(
-                        None,
-                        "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
-                    ),
-                    type="messages",
-                )
-                gr.HTML('<div class="chat-divider"></div>')
-                with gr.Group(elem_classes="input-area"):
-                    with gr.Row(elem_classes="composer-row"):
-                        user_input = gr.Textbox(
-                            placeholder="Ask anything — search the web, generate nature scenes, check timezones...",
-                            show_label=False,
-                            lines=1,
-                            max_lines=4,
-                            scale=7,
-                            elem_classes="input-box",
-                        )
-                        send_btn = gr.Button("Send ➜", scale=0, elem_classes="send-btn")
-                with gr.Row(elem_classes="bottom-bar"):
-                    clear_btn = gr.Button("Clear chat", elem_classes="clear-btn")
+        with gr.Column(elem_classes="chat-card"):
+            chatbot = gr.Chatbot(
+                value=[],
+                height=640,
+                show_label=False,
+                elem_classes="chatbot-box",
+                avatar_images=(
+                    None,
+                    "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
+                ),
+            )
 
-            # RIGHT: SIDEBAR
-            with gr.Column(elem_classes="sidebar"):
-                with gr.Group(elem_classes="sidebar-card"):
-                    gr.HTML('<div class="panel-title"><span>✦</span> Try an example</div>')
-                    with gr.Group(elem_classes="examples-section"):
-                        gr.Examples(
-                            examples=EXAMPLE_PROMPTS,
-                            inputs=user_input,
-                            label="",
-                        )
+            gr.HTML('<div class="chat-divider"></div>')
 
-                with gr.Group(elem_classes="info-card"):
-                    gr.HTML('<div class="panel-title"><span>✦</span> Capabilities</div>')
-                    gr.HTML(
-                        """
-                        <div class="capability-list">
-                            <div class="capability-item">
-                                <div class="cap-icon">🔍</div>
-                                <div class="cap-text"><strong>Web Search</strong><span>Real-time DuckDuckGo results for current topics</span></div>
-                            </div>
-                            <div class="capability-item">
-                                <div class="cap-icon">🎨</div>
-                                <div class="cap-text"><strong>Image Generation</strong><span>Create scenic visuals using FLUX on HuggingFace</span></div>
-                            </div>
-                            <div class="capability-item">
-                                <div class="cap-icon">🌐</div>
-                                <div class="cap-text"><strong>Web Browsing</strong><span>Visit, read, and summarize webpages</span></div>
-                            </div>
-                            <div class="capability-item">
-                                <div class="cap-icon">🕐</div>
-                                <div class="cap-text"><strong>Timezone Tool</strong><span>Check the current time anywhere in the world</span></div>
-                            </div>
-                            <div class="capability-item">
-                                <div class="cap-icon">⚡</div>
-                                <div class="cap-text"><strong>Code Execution</strong><span>Reason with Python for fast computations</span></div>
-                            </div>
-                        </div>
-                        """
+            with gr.Group(elem_classes="input-area"):
+                with gr.Row(elem_classes="composer-row"):
+                    user_input = gr.Textbox(
+                        placeholder="Ask anything — search the web, generate nature scenes, check timezones...",
+                        show_label=False,
+                        lines=1,
+                        max_lines=4,
+                        scale=7,
+                        elem_classes="input-box",
                     )
+                    send_btn = gr.Button("Send ➜", scale=0, elem_classes="send-btn")
+
+            with gr.Row(elem_classes="bottom-bar"):
+                clear_btn = gr.Button("Clear chat", elem_classes="clear-btn")
+
+            gr.HTML('<div class="examples-label">✦ Try an example</div>')
+            with gr.Group(elem_classes="examples-wrap"):
+                gr.Examples(examples=EXAMPLE_PROMPTS, inputs=user_input, label="")
 
         gr.HTML('<div class="footer">Built with 🤗 smolagents · Gradio · GPT-4o · FLUX</div>')
 
