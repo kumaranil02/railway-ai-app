@@ -377,7 +377,7 @@ EXAMPLE_PROMPTS = [
     "Create an image of a robot reading books in a cozy library",
 ]
 
-with gr.Blocks(title="✨ AI Agent", theme=gr.themes.Default(font=gr.themes.GoogleFont("Inter"))) as demo:
+with gr.Blocks(title="✨ AI Agent") as demo:
 
     gr.HTML(f"<style>{CSS}</style>")
 
@@ -403,7 +403,6 @@ with gr.Blocks(title="✨ AI Agent", theme=gr.themes.Default(font=gr.themes.Goog
             show_label=False,
             elem_classes="chatbot-box",
             avatar_images=(None, "https://huggingface.co/front/assets/huggingface_logo-noborder.svg"),
-            bubble_full_width=False,
         )
 
         with gr.Group(elem_classes="input-area"):
@@ -435,4 +434,4 @@ with gr.Blocks(title="✨ AI Agent", theme=gr.themes.Default(font=gr.themes.Goog
 # LAUNCH
 # =====================================================
 
-demo.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", 7861)))
+demo.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", 7861)), theme=gr.themes.Default(font=gr.themes.GoogleFont("Inter")))
