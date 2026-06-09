@@ -9,3 +9,4 @@ markdownify
 requests
 pillow
 pyyaml
+ddgs
